@@ -12,17 +12,24 @@ const limiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
 });
 require("dotenv").config();
-require("./cron/cronJob"); // Load cron job
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true  // Allow credentials (cookies, headers) to be sent
+  }
+});
 
-app.use(cors({ origin: allowedOrigins }));
+require("./cron/cronJob")(io);
+// Apply CORS middleware for HTTP routes
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
-app.use("/api/", limiter);
-app.use("/api/data", dataRoutes);
 app.use(errorHandler);  // middleware/errorHandler.js
+app.use("/api/data", dataRoutes);
+app.use("/api/", limiter);
 
 // WebSocket connection handling
 io.on("connection", (socket) => {

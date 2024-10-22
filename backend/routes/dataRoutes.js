@@ -11,7 +11,14 @@ const dataSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long'),
   description: z.string().min(10, 'Description must be at least 10 characters long'),
 });
-
+router.get('/', async (req, res, next) => {
+  try {
+    const data = await Data.find();
+    res.json(data);
+  } catch (error) {
+    next(error);  // Pass error to the error handler middleware
+  }
+});
 // Generate new data from external API
 router.post('/generate', async (req, res, next) => {
   try {
